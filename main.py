@@ -14,9 +14,6 @@ import fire
 
 def covert(folderPath):
     path = folderPath + os.path.sep + folderPath.split(os.path.sep)[-1]
-    import pdb
-
-    pdb.set_trace()
     command = f'ffmpeg -i "{path+".ts"}" -acodec copy -vcodec copy "{path+".mp4"}"'
     subprocess.call(command, shell=True)
 
