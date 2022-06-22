@@ -1,8 +1,6 @@
 # author: hcjohn463
 #!/usr/bin/env python
 # coding: utf-8
-
-
 from get_m3u8 import get_m3u8
 import os
 from merge import mergeMp4
@@ -18,13 +16,12 @@ def covert(folderPath):
     subprocess.call(command, shell=True)
 
 
-def main(url, m3u8url):
+def main(url, m3u8url, outPath="./"):
     urlSplit = url.split("/")
     dirName = urlSplit[-2] if url[-1] == "/" else urlSplit[-1]
-    if not os.path.exists(dirName):
-        os.makedirs(dirName)
-    folderPath = os.path.join(os.getcwd(), dirName)
-
+    folderPath = os.path.join(outPath, dirName)
+    if not os.path.exists(folderPath):
+        os.makedirs(folderPath)
     video_name = folderPath.split(os.path.sep)[-1]
     tsPath = os.path.join(folderPath, video_name + ".ts")
     mp4Path = os.path.join(folderPath, video_name + ".mp4")

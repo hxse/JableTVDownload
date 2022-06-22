@@ -15,7 +15,6 @@ def url_retrieve(url: str, outfile: str):
         raise ConnectionError(
             "could not download {}\nerror code: {}".format(url, R.status_code)
         )
-
     Path(outfile).write_bytes(R.content)
 
 

@@ -12,6 +12,7 @@ dependencies = [
     "pycryptodome",
     "cloudscraper==1.2.58",
     "python-ffmpeg>=1.0.14",
+    "fire>=0.4.0",
 ]
 requires-python = ">=3.10"
 license = {text = "MIT"}
