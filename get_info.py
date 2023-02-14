@@ -74,7 +74,7 @@ def loop_download_info(
     mode="jable",
     refresh=False,
     playlist=True,
-    message=True,
+    message=False,
     playlsit_message=False,
 ):
     urls = []
@@ -98,6 +98,8 @@ def loop_download_info(
             if message:
                 print("success:", info_file)
             break
+    if not message:
+        print("update info_file...")
     if playlist == True:
         create_playlist(message=playlsit_message)
         if not playlsit_message:
