@@ -66,7 +66,7 @@ def load_json_data(path):
 
 
 def get_info_path(i):
-    return i / "info.json"
+    return i / f"{i.name} info.json"
 
 
 def loop_download_info(
@@ -118,8 +118,10 @@ def create_playlist(
             info_file = get_info_path(i)
             json_data = load_json_data(info_file)
             data.append(json_data)
-    obj = {}
+
     if mode == "jable":
+        data.sort(key=lambda x: int(x["jable"]["count"]), reverse=True)
+        obj = {}
         for i in data:
             i = i["jable"]
             if "models" not in obj:
@@ -137,15 +139,27 @@ def create_playlist(
                     obj["tags"][t] = []
                 obj["tags"][t].append(i["av_id"])
 
-    for name in ["models", "tags"]:
-        for k, v in obj[name].items():
-            k = k.replace("/", "_")
-            playlist_file = Path(playlistPath) / name / (k + ".m3u8")
-            playlist_file.parent.mkdir(parents=True, exist_ok=True)
-            with open(playlist_file, "w", encoding="utf8") as f:
-                f.writelines([f"..\..\{Path(dirPath).name}\{i}\{i}.mp4\n" for i in v])
-                if message:
-                    print(f"success create file: {playlist_file}")
+        for name in ["models", "tags", "count"]:
+            if name == "count":
+                playlist_file = Path(playlistPath) / ("count" + ".m3u8")
+                with open(playlist_file, "w", encoding="utf8") as f:
+                    f.writelines(
+                        [
+                            f"..\..\{Path(dirPath).name}\{i['jable']['av_id']}\{i['jable']['av_id']}.mp4\n"
+                            for i in data
+                        ]
+                    )
+                continue
+            for k, v in obj[name].items():
+                k = k.replace("/", "_")
+                playlist_file = Path(playlistPath) / name / (k + ".m3u8")
+                playlist_file.parent.mkdir(parents=True, exist_ok=True)
+                with open(playlist_file, "w", encoding="utf8") as f:
+                    f.writelines(
+                        [f"..\..\{Path(dirPath).name}\{i}\{i}.mp4\n" for i in v]
+                    )
+                    if message:
+                        print(f"success create file: {playlist_file}")
 
 
 if __name__ == "__main__":
