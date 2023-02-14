@@ -70,7 +70,12 @@ def get_info_path(i):
 
 
 def loop_download_info(
-    dirPath=r"E:\jable download", mode="jable", refresh=False, playlist=True
+    dirPath=r"E:\jable download",
+    mode="jable",
+    refresh=False,
+    playlist=True,
+    message=True,
+    playlsit_message=False,
 ):
     urls = []
     for i in Path(dirPath).glob("*"):
@@ -79,7 +84,8 @@ def loop_download_info(
                 info_file = get_info_path(i)
                 jsonData = load_json_data(info_file)
                 if not refresh and jsonData and mode in jsonData:
-                    print(f"检测到存在,已跳过 {info_file}")
+                    if message:
+                        print(f"检测到存在,已跳过 {info_file}")
                     continue
                 urls.append(f"https://jable.tv/videos/{i.name}/")
     tasks = (grequests.get(u, proxies=proxies, headers=headers) for u in urls)
@@ -89,14 +95,20 @@ def loop_download_info(
             info_file = get_info_path(i)
             with open(info_file, "w", encoding="utf-8") as file:
                 json.dump({"jable": data}, file, ensure_ascii=False, indent=4)
-            print("success:", info_file)
+            if message:
+                print("success:", info_file)
             break
     if playlist == True:
-        create_playlist()
+        create_playlist(message=playlsit_message)
+        if not playlsit_message:
+            print("update playlist...")
 
 
 def create_playlist(
-    dirPath=r"E:\jable download", playlistPath=r"E:\jable playlist", mode="jable"
+    dirPath=r"E:\jable download",
+    playlistPath=r"E:\jable playlist",
+    mode="jable",
+    message=True,
 ):
     data = []
     for i in Path(dirPath).glob("*"):
@@ -130,7 +142,8 @@ def create_playlist(
             playlist_file.parent.mkdir(parents=True, exist_ok=True)
             with open(playlist_file, "w", encoding="utf8") as f:
                 f.writelines([f"..\..\{Path(dirPath).name}\{i}\{i}.mp4\n" for i in v])
-                print(f"success create file: {playlist_file}")
+                if message:
+                    print(f"success create file: {playlist_file}")
 
 
 if __name__ == "__main__":
