@@ -152,6 +152,8 @@ def create_playlist_favourite(
                 data.append(i)
         pathJson = rf"{playlistPath}\favourite.json"
         pathText = rf"{playlistPath}\favourite.m3u8"
+        if len(data) == 0:
+            return
         with open(pathJson, "w", encoding="utf-8") as file:
             json.dump(data, file, ensure_ascii=False, indent=4)
         with open(pathText, "w", encoding="utf-8") as file:
