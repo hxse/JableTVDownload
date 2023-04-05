@@ -106,6 +106,59 @@ def loop_download_info(
             print("update playlist...")
 
 
+def create_playlist_favourite(
+    dirPath,
+    playlistPath,
+    mode,
+    message,
+    url="https://jable.tv/members/297827/",
+    urlApi="https://jable.tv/members/297827/?mode=async&function=get_block&block_id=list_videos_favourite_videos&fav_type=0&playlist_id=0&sort_by=&from_fav_videos={}",
+):
+    print("downloading favourite")
+    pageCount = None
+    tasks = (grequests.get(u, proxies=proxies, headers=headers) for u in [url] * 3)
+    for resp in grequests.imap(tasks):
+        soup = BeautifulSoup(resp.text, "html.parser")
+        item = soup.select_one(
+            "#list_videos_favourite_videos > section > ul > li:nth-last-child(1) > a"
+        )
+        pageCount = int(item["data-parameters"].split(";")[-1].split(":")[-1])
+        break
+    if pageCount != None:
+        urls = [urlApi.format(i + 1) for i in range(0, pageCount)]
+        tasks = (grequests.get(u, proxies=proxies, headers=headers) for u in urls)
+        respArr = grequests.map(tasks, size=6)
+        data = []
+        for i in respArr:
+            soup = BeautifulSoup(i.text, "html.parser").select(
+                "#list_videos_favourite_videos  div.detail"
+            )
+            for i in [
+                {
+                    "title": i.find("a").text,
+                    "url": i.find("a").attrs["href"],
+                    "av_id": i.find("a").text.split(" ")[0],
+                    "view": i.find("p", class_="sub-title")
+                    .text.replace(" ", "")
+                    .strip()
+                    .split("\n")[0],
+                    "count": i.find("p", class_="sub-title")
+                    .text.replace(" ", "")
+                    .strip()
+                    .split("\n")[1],
+                }
+                for i in soup
+            ]:
+                data.append(i)
+        pathJson = rf"{playlistPath}\favourite.json"
+        pathText = rf"{playlistPath}\favourite.m3u8"
+        with open(pathJson, "w", encoding="utf-8") as file:
+            json.dump(data, file, ensure_ascii=False, indent=4)
+        with open(pathText, "w", encoding="utf-8") as file:
+            for i in data:
+                file.write(f'..\..\jable download\{i["av_id"]}\{i["av_id"]}.mp4\n')
+
+
 def create_playlist(
     dirPath=r"E:\jable download",
     playlistPath=r"E:\jable playlist",
@@ -160,6 +213,13 @@ def create_playlist(
                     )
                     if message:
                         print(f"success create file: {playlist_file}")
+
+        create_playlist_favourite(
+            dirPath=dirPath,
+            playlistPath=playlistPath,
+            mode=mode,
+            message=message,
+        )
 
 
 if __name__ == "__main__":
