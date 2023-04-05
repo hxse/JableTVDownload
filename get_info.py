@@ -133,11 +133,11 @@ def create_playlist_favourite(
             soup = BeautifulSoup(i.text, "html.parser").select(
                 "#list_videos_favourite_videos  div.detail"
             )
-            for i in [
+            arr = [
                 {
                     "title": i.find("a").text,
                     "url": i.find("a").attrs["href"],
-                    "av_id": i.find("a").text.split(" ")[0],
+                    "av_id": i.find("a").attrs["href"].split("/")[-2],
                     "view": i.find("p", class_="sub-title")
                     .text.replace(" ", "")
                     .strip()
@@ -148,12 +148,12 @@ def create_playlist_favourite(
                     .split("\n")[1],
                 }
                 for i in soup
-            ]:
+            ]
+            assert len(arr) > 0, f"检测到当前页视频数量不足,请检查 {url}"
+            for i in arr:
                 data.append(i)
         pathJson = rf"{playlistPath}\favourite.json"
         pathText = rf"{playlistPath}\favourite.m3u8"
-        if len(data) == 0:
-            return
         with open(pathJson, "w", encoding="utf-8") as file:
             json.dump(data, file, ensure_ascii=False, indent=4)
         with open(pathText, "w", encoding="utf-8") as file:
