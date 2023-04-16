@@ -43,8 +43,7 @@ def operate_jable(r):
             "tags": [{"tag": i.text, "href": i["href"]} for i in tags],
         }
         return obj
-    print(f"请求失败 {r.status_code}")
-    return r.text
+    raise Exception(f"请求失败 {r.status_code} {r.url}")
 
 
 def get_jable_one(url):
