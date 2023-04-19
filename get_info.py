@@ -182,7 +182,7 @@ def filter_data(av_id_arr, dirPath):
         if find_av_id(dirPath, av_id):
             newData.append(av_id)
         else:
-            print(f"没有检测到文件,{av_id}")
+            print(f"没有检测到文件, https://jable.tv/videos/{av_id}/")
     return newData
 
 
