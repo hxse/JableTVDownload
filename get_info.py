@@ -7,6 +7,7 @@ import re
 from pathlib import Path
 import fire
 import json
+from get_playwright import operate_jable_playwright, jable_favourite_playwright
 
 
 def operate_jable(r):
@@ -46,14 +47,17 @@ def operate_jable(r):
     raise Exception(f"请求失败 {r.status_code} {r.url}")
 
 
-def get_jable_one(url):
-    tasks = (grequests.get(u, proxies=proxies, headers=headers) for u in [url])
-    for r in grequests.imap(tasks, size=6):
-        if r.status_code == 200:
-            data = operate_jable(r)
-            print(data)
-        else:
-            print(f"请求失败 {r.status_code}")
+async def get_jable_one(url, get_mode="playwright"):
+    if get_mode == "playwright":
+        return await operate_jable_playwright(url, headless=True)
+    else:
+        tasks = (grequests.get(u, proxies=proxies, headers=headers) for u in [url])
+        for r in grequests.imap(tasks, size=6):
+            if r.status_code == 200:
+                data = operate_jable(r)
+                return data
+            else:
+                print(f"请求失败 {r.status_code}")
 
 
 def load_json_data(path):
@@ -68,28 +72,30 @@ def get_info_path(i):
     return i / f"{i.name} info.json"
 
 
-def loop_download_info(
+async def loop_download_info(
     dirPath=r"E:\jable download",
     mode="jable",
     refresh=False,
     playlist=True,
     message=False,
     playlsit_message=False,
+    get_mode="playwright",
 ):
+    allUrls = []
     urls = []
     for i in Path(dirPath).glob("*"):
         if i.is_dir():
             if mode == "jable":
                 info_file = get_info_path(i)
                 jsonData = load_json_data(info_file)
+                allUrls.append(f"https://jable.tv/videos/{i.name}/")
                 if not refresh and jsonData and mode in jsonData:
                     if message:
                         print(f"检测到存在,已跳过 {info_file}")
                     continue
                 urls.append(f"https://jable.tv/videos/{i.name}/")
-    tasks = (grequests.get(u, proxies=proxies, headers=headers) for u in urls)
-    for resp in grequests.imap(tasks, size=6):
-        data = operate_jable(resp)
+
+    def write_json(data):
         for i in Path(dirPath).glob(data["av_id"]):
             info_file = get_info_path(i)
             with open(info_file, "w", encoding="utf-8") as file:
@@ -97,23 +103,33 @@ def loop_download_info(
             if message:
                 print("success:", info_file)
             break
-    if not message:
-        print("update info_file...")
+
+    if len(urls) == 0:
+        print("tag,未检测到需要下载,标签分类跳过")
+    else:
+        print("待下载", len(urls), "已跳过", len(allUrls))
+    if get_mode == "playwright":
+        for i in urls:
+            data = await operate_jable_playwright(i)
+            write_json(data)
+    else:
+        tasks = (grequests.get(u, proxies=proxies, headers=headers) for u in urls)
+        for resp in grequests.imap(tasks, size=6):
+            data = operate_jable(resp)
+            write_json(data)
+
+    # if not message:
+    #     print("update info_file...")
     if playlist == True:
-        create_playlist(message=playlsit_message)
-        if not playlsit_message:
-            print("update playlist...")
+        await create_playlist(message=playlsit_message, update=(len(urls) > 0))
+        # if not playlsit_message:
+        #     print("update playlist...")
 
 
-def create_playlist_favourite(
-    dirPath,
-    playlistPath,
-    mode,
-    message,
-    url="https://jable.tv/members/297827/",
-    urlApi="https://jable.tv/members/297827/?mode=async&function=get_block&block_id=list_videos_favourite_videos&fav_type=0&playlist_id=0&sort_by=&from_fav_videos={}",
+def jable_favourite(
+    url,
+    urlApi,
 ):
-    print("downloading favourite")
     pageCount = None
     tasks = (grequests.get(u, proxies=proxies, headers=headers) for u in [url] * 3)
     for resp in grequests.imap(tasks):
@@ -151,20 +167,81 @@ def create_playlist_favourite(
             assert len(arr) > 0, f"检测到当前页视频数量不足,请检查 {url}"
             for i in arr:
                 data.append(i)
-        pathJson = rf"{playlistPath}\favourite.json"
-        pathText = rf"{playlistPath}\favourite.m3u8"
-        with open(pathJson, "w", encoding="utf-8") as file:
-            json.dump(data, file, ensure_ascii=False, indent=4)
-        with open(pathText, "w", encoding="utf-8") as file:
+    return data
+
+
+def find_av_id(dirPath, av_id):
+    for i in Path(dirPath).rglob(f"*{av_id}.mp4"):
+        return True
+    return False
+
+
+def filter_data(av_id_arr, dirPath):
+    newData = []
+    for av_id in av_id_arr:
+        if find_av_id(dirPath, av_id):
+            newData.append(av_id)
+        else:
+            print(f"没有检测到文件,{av_id}")
+    return newData
+
+
+def check_m3u8_file(dirPath, playlistPath):
+    # 检测m3u8文件是否存在
+    fileArr = []
+    for i in Path(playlistPath).rglob("*.m3u8"):
+        with open(i, "r", encoding="utf8") as f:
+            data = f.readlines()
             for i in data:
-                file.write(f'..\..\jable download\{i["av_id"]}\{i["av_id"]}.mp4\n')
+                av_id = i.strip().split("\\")[-2]
+                if av_id not in fileArr:
+                    fileArr.append(av_id)
+    filter_data(fileArr, dirPath)  # 只是提示一下
 
 
-def create_playlist(
-    dirPath=r"E:\jable download",
-    playlistPath=r"E:\jable playlist",
-    mode="jable",
-    message=True,
+async def create_playlist_favourite(
+    dirPath,
+    playlistPath,
+    mode,
+    message,
+    url="https://jable.tv/members/297827/",
+    urlApi="https://jable.tv/members/297827/?mode=async&function=get_block&block_id=list_videos_favourite_videos&fav_type=0&playlist_id=0&sort_by=&from_fav_videos={}",
+    get_mode="playwright",
+):
+    pathJson = rf"{playlistPath}\favourite.json"
+    pathText = rf"{playlistPath}\favourite.m3u8"
+
+    localCount = None
+    if Path(pathJson).is_file():
+        with open(pathText, "r", encoding="utf-8") as file:
+            d = file.readlines()
+            localCount = len(d)
+
+    if get_mode == "playwright":
+        data = await jable_favourite_playwright(url, localCount=localCount)
+        if data == None:
+            return
+        print("favourite页面,成功获取,数量为:", len(data))
+    else:
+        data = jable_favourite(
+            url=url,
+            urlApi=urlApi,
+        )
+    print("downloading favourite")
+
+    with open(pathJson, "w", encoding="utf-8") as file:
+        json.dump(data, file, ensure_ascii=False, indent=4)
+    with open(pathText, "w", encoding="utf-8") as file:
+        for i in data:
+            file.write(f'..\..\jable download\{i["av_id"]}\{i["av_id"]}.mp4\n')
+
+
+def create_playlist_tag(
+    dirPath,
+    playlistPath,
+    mode,
+    message,
+    update,
 ):
     data = []
     for i in Path(dirPath).glob("*"):
@@ -175,6 +252,7 @@ def create_playlist(
 
     if mode == "jable":
         data.sort(key=lambda x: int(x["jable"]["count"]), reverse=True)
+
         obj = {}
         for i in data:
             i = i["jable"]
@@ -215,12 +293,31 @@ def create_playlist(
                     if message:
                         print(f"success create file: {playlist_file}")
 
-        create_playlist_favourite(
+
+async def create_playlist(
+    dirPath=r"E:\jable download",
+    playlistPath=r"E:\jable playlist",
+    mode="jable",
+    message=True,
+    update=True,
+):
+    if update:
+        create_playlist_tag(
             dirPath=dirPath,
             playlistPath=playlistPath,
             mode=mode,
             message=message,
+            update=update,
         )
+
+    await create_playlist_favourite(
+        dirPath=dirPath,
+        playlistPath=playlistPath,
+        mode=mode,
+        message=message,
+    )
+
+    check_m3u8_file(dirPath, playlistPath)
 
 
 if __name__ == "__main__":
