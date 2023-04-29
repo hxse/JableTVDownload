@@ -343,8 +343,11 @@ def create_playlist_tag(
             else:
                 sort_list[idx] = i
         new_list = [*sort_list, *new_list]
+
+        number_fill = lambda x, y: str(x).zfill(len(str(len(y) - 1)))  # 数字补零
         new_list2 = [
-            playlist_dir_sort / f"{k}_{v.name}" for k, v in enumerate(new_list)
+            playlist_dir_sort / f"{number_fill(k,new_list)}_{v.name}"
+            for k, v in enumerate(new_list)
         ]
         for in_file, out_file in zip(new_list, new_list2):
             out_file.write_bytes(in_file.read_bytes())
