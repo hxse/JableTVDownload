@@ -1,6 +1,8 @@
 import asyncio
 from playwright.async_api import async_playwright
 
+timeout = 90 * 1000
+
 
 async def click_button(el, n):
     for i in el:
@@ -50,7 +52,7 @@ async def jable_favourite_playwright(
         for browser_type in [p.firefox]:  # p.chromium, 用chromium会被检测到, firefox不会
             browser = await browser_type.launch(headless=headless)
             page = await browser.new_page()
-            await page.goto(url)
+            await page.goto(url, timeout=timeout)
 
             countEl = await page.wait_for_selector(".count", state="attached")
             count = int(await countEl.text_content())
@@ -70,7 +72,7 @@ async def operate_jable_playwright(url, headless=True):
         for browser_type in [p.firefox]:  # p.chromium, 用chromium会被检测到, firefox不会
             browser = await browser_type.launch(headless=headless)
             page = await browser.new_page()
-            await page.goto(url)
+            await page.goto(url, timeout=timeout)
             el = await page.query_selector("div.info-header")
             titleEl = await el.query_selector(".header-left h4")
             countEl = await page.query_selector(".count")

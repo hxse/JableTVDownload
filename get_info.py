@@ -9,6 +9,40 @@ import fire
 import json
 from get_playwright import operate_jable_playwright, jable_favourite_playwright
 
+sort_list = [
+    "永野いち夏",
+    "川上奈々美",
+    "希島あいり",
+    "もなみ鈴",
+    "河南実里",
+    "日泉舞香",
+    "戸田真琴",
+    "架乃ゆら",
+    "楓カレン",
+    "槙いずな",
+    "相沢みなみ",
+    "桜空もも",
+    "花狩まい",
+    "松本いちか",
+]
+
+
+def index_of(input_list, value):
+    try:
+        return input_list.index(value)
+    except ValueError:
+        return -1
+
+
+def rm_tree(path):
+    path = Path(path)
+    for child in path.glob("*"):
+        if child.is_file():
+            child.unlink()
+        else:
+            rm_tree(child)
+    path.rmdir()
+
 
 def operate_jable(r):
     if r.status_code == 200:
@@ -107,7 +141,7 @@ async def loop_download_info(
     if len(urls) == 0:
         print("tag,未检测到需要下载,标签分类跳过")
     else:
-        print("待下载", len(urls), "已跳过", len(allUrls))
+        print("tag,待下载", len(urls), "已跳过", len(allUrls))
     if get_mode == "playwright":
         for i in urls:
             data = await operate_jable_playwright(i)
@@ -292,6 +326,28 @@ def create_playlist_tag(
                     )
                     if message:
                         print(f"success create file: {playlist_file}")
+
+        # sort models
+        playlist_dir = Path(playlistPath) / "models"
+        playlist_dir_sort = Path(playlistPath) / "models_sort"
+        if playlist_dir_sort.is_dir():
+            rm_tree(playlist_dir_sort)
+        playlist_dir_sort.mkdir(exist_ok=True)
+
+        d = list(Path(playlist_dir).glob("*"))
+        new_list = []
+        for i in d:
+            idx = index_of(sort_list, i.stem)
+            if idx == -1:
+                new_list.append(i)
+            else:
+                sort_list[idx] = i
+        new_list = [*sort_list, *new_list]
+        new_list2 = [
+            playlist_dir_sort / f"{k}_{v.name}" for k, v in enumerate(new_list)
+        ]
+        for in_file, out_file in zip(new_list, new_list2):
+            out_file.write_bytes(in_file.read_bytes())
 
 
 async def create_playlist(
