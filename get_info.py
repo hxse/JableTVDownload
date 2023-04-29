@@ -213,10 +213,8 @@ def find_av_id(dirPath, av_id):
 def filter_data(av_id_arr, dirPath):
     newData = []
     for av_id in av_id_arr:
-        if find_av_id(dirPath, av_id):
+        if not find_av_id(dirPath, av_id):
             newData.append(av_id)
-        else:
-            print(f"没有检测到文件, https://jable.tv/videos/{av_id}/")
     return newData
 
 
@@ -230,7 +228,22 @@ def check_m3u8_file(dirPath, playlistPath):
                 av_id = i.strip().split("\\")[-2]
                 if av_id not in fileArr:
                     fileArr.append(av_id)
-    filter_data(fileArr, dirPath)  # 只是提示一下
+    empty_file_arr = filter_data(fileArr, dirPath)  # 只是提示一下
+
+    # 清理m3u8列表里的空文件
+    for path in Path(playlistPath).rglob("*.m3u8"):
+        new_arr = []
+        with open(path, "r", encoding="utf8") as f:
+            data = f.readlines()
+            for i in data:
+                av_id = i.strip().split("\\")[-2]
+                if not av_id in empty_file_arr:
+                    new_arr.append(i)
+
+        with open(path, "w", encoding="utf8") as f:
+            f.writelines(new_arr)
+
+    return empty_file_arr
 
 
 async def create_playlist_favourite(
@@ -369,6 +382,8 @@ async def create_playlist(
             update=update,
         )
 
+    empty_file_arr = check_m3u8_file(dirPath, playlistPath)
+
     await create_playlist_favourite(
         dirPath=dirPath,
         playlistPath=playlistPath,
@@ -376,7 +391,10 @@ async def create_playlist(
         message=message,
     )
 
-    check_m3u8_file(dirPath, playlistPath)
+    empty_file_arr = [*empty_file_arr, *check_m3u8_file(dirPath, playlistPath)]
+
+    for i in empty_file_arr:
+        print(f"没有检测到文件, https://jable.tv/videos/{i}/")
 
 
 if __name__ == "__main__":
