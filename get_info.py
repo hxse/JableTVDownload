@@ -280,7 +280,7 @@ async def create_playlist_favourite(
         json.dump(data, file, ensure_ascii=False, indent=4)
     with open(pathText, "w", encoding="utf-8") as file:
         for i in data:
-            file.write(f'..\..\jable download\{i["av_id"]}\{i["av_id"]}.mp4\n')
+            file.write(f'..\jable download\{i["av_id"]}\{i["av_id"]}.mp4\n')
 
 
 def create_playlist_tag(
@@ -324,7 +324,7 @@ def create_playlist_tag(
                 with open(playlist_file, "w", encoding="utf8") as f:
                     f.writelines(
                         [
-                            f"..\..\{Path(dirPath).name}\{i['jable']['av_id']}\{i['jable']['av_id']}.mp4\n"
+                            f"..\{Path(dirPath).name}\{i['jable']['av_id']}\{i['jable']['av_id']}.mp4\n"
                             for i in data
                         ]
                     )
