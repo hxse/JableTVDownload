@@ -8,23 +8,7 @@ from pathlib import Path
 import fire
 import json
 from get_playwright import operate_jable_playwright, jable_favourite_playwright
-
-sort_list = [
-    "永野いち夏",
-    "川上奈々美",
-    "希島あいり",
-    "もなみ鈴",
-    "河南実里",
-    "日泉舞香",
-    "戸田真琴",
-    "架乃ゆら",
-    "楓カレン",
-    "槙いずな",
-    "相沢みなみ",
-    "桜空もも",
-    "花狩まい",
-    "松本いちか",
-]
+from config import sort_list
 
 
 def index_of(input_list, value):
