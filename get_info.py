@@ -314,6 +314,11 @@ def create_playlist_tag(
                     )
                 continue
             for k, v in obj[name].items():
+                if not k:
+                    print(name, "可能是爬虫没下好,重新下载一下info.json文件")
+                    import pdbr
+
+                    pdbr.set_trace()
                 k = k.replace("/", "_")
                 playlist_file = Path(playlistPath) / name / (k + ".m3u8")
                 playlist_file.parent.mkdir(parents=True, exist_ok=True)
