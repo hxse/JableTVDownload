@@ -20,13 +20,6 @@ dependencies = [
 requires-python = ">=3.10"
 license = {text = "MIT"}
 
-[tool.pdm]
-[[tool.pdm.source]]
-name = "pypi"
-url = "https://pypi.tuna.tsinghua.edu.cn/simple"
-verify_ssl = true
-
-
 [tool.pdm.dev-dependencies]
 dev = [
 ]
