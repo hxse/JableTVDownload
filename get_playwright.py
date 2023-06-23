@@ -70,7 +70,10 @@ async def jable_favourite_playwright(
 async def operate_jable_playwright(url, headless=True):
     async with async_playwright() as p:
         for browser_type in [p.firefox]:  # p.chromium, 用chromium会被检测到, firefox不会
-            browser = await browser_type.launch(headless=headless)
+            browser = await browser_type.launch(
+                headless=headless,
+                # executablePath="C:\\Users\\hxse\\AppData\\Local\\ms-playwright\\firefox-1335\\firefox\\firefox.exe",
+            )
             page = await browser.new_page()
             await page.goto(url, timeout=timeout)
             el = await page.query_selector("div.info-header")
