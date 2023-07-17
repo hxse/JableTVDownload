@@ -315,10 +315,18 @@ def create_playlist_tag(
                 continue
             for k, v in obj[name].items():
                 if not k:
-                    print(name, "可能是爬虫没下好,重新下载一下info.json文件")
-                    import pdbr
+                    print(name, "可能是爬虫没下好,需要重新下载一下info.json文件")
+                    print(v)
+                    if input("输入delete删除这些info.json文件,输入其他跳过: ") == "delete":
+                        for i in v:
+                            infoPath = Path(dirPath) / i / f"{i} info.json"
+                            infoPath.unlink(missing_ok=True)
+                            print(f"删除 {infoPath}")
+                    print("按q退出")
+                    import pdb
 
-                    pdbr.set_trace()
+                    pdb.set_trace()
+                    return
                 k = k.replace("/", "_")
                 playlist_file = Path(playlistPath) / name / (k + ".m3u8")
                 playlist_file.parent.mkdir(parents=True, exist_ok=True)
