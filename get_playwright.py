@@ -1,7 +1,7 @@
 import asyncio
 from playwright.async_api import async_playwright
 
-timeout = 90 * 1000
+timeout = 60 * 1000 * 3
 
 
 async def click_button(el, n):
