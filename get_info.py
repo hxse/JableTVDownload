@@ -53,9 +53,11 @@ def operate_jable(r):
             "models": [
                 {
                     "href": i["href"],
-                    "title": i.find("img")["title"]
-                    if i.find("img")
-                    else i.find("span")["title"],
+                    "title": (
+                        i.find("img")["title"]
+                        if i.find("img")
+                        else i.find("span")["title"]
+                    ),
                 }
                 for i in models
             ],
@@ -317,7 +319,10 @@ def create_playlist_tag(
                 if not k:
                     print(name, "可能是爬虫没下好,需要重新下载一下info.json文件")
                     print(v)
-                    if input("输入delete删除这些info.json文件,输入其他跳过: ") == "delete":
+                    if (
+                        input("输入delete删除这些info.json文件,输入其他跳过: ")
+                        == "delete"
+                    ):
                         for i in v:
                             infoPath = Path(dirPath) / i / f"{i} info.json"
                             infoPath.unlink(missing_ok=True)
@@ -353,6 +358,9 @@ def create_playlist_tag(
             else:
                 sort_list[idx] = i
         new_list = [*sort_list, *new_list]
+        new_list = [
+            i for i in new_list if type(i) != str
+        ]  # 如果配置文件里面有模特名字,但是本地还没有文件,就会报错,用这行代码解决
 
         number_fill = lambda x, y: str(x).zfill(len(str(len(y) - 1)))  # 数字补零
         new_list2 = [
