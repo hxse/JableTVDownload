@@ -141,7 +141,10 @@ async def loop_download_info(
     # if not message:
     #     print("update info_file...")
     if playlist == True:
-        await create_playlist(message=playlsit_message, update=(len(urls) > 0))
+        await create_playlist(
+            message=playlsit_message, update=(len(urls) > -1)
+        )  # len(urls)>0是有tag下载才重新生成播放列表, >-1就是直接生成
+
         # if not playlsit_message:
         #     print("update playlist...")
 
