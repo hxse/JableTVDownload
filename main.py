@@ -20,6 +20,7 @@ def covert(folderPath):
     command = f'ffmpeg -i "{originPath.as_posix()}" -acodec copy -vcodec copy "{targetPath.as_posix()}"'
     print(command)
     subprocess.call(command, shell=True)
+    return targetPath
 
 
 def main(url, m3u8url, outPath="./", tempDir=""):
@@ -67,7 +68,9 @@ def main(url, m3u8url, outPath="./", tempDir=""):
     # 刪除子ts
     deleteChildTs(_Obj["path"])
     # 转换ts to mp4
-    covert(_Obj["path"])
+    targetPath = covert(_Obj["path"])
+    if not os.path.exists(targetPath):
+        raise ("找不到mp4文件")
     # 删除父ts
     deleteParentTs(_Obj["path"])
 
