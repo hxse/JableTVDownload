@@ -49,7 +49,9 @@ async def jable_favourite_playwright(
     url="https://jable.tv/members/297827/", localCount=None, headless=True
 ):
     async with async_playwright() as p:
-        for browser_type in [p.firefox]:  # p.chromium, 用chromium会被检测到, firefox不会
+        for browser_type in [
+            p.firefox
+        ]:  # p.chromium, 用chromium会被检测到, firefox不会
             browser = await browser_type.launch(headless=headless)
             page = await browser.new_page()
             await page.goto(url, timeout=timeout)
@@ -63,13 +65,17 @@ async def jable_favourite_playwright(
                     return
 
             data = await recursion_find_button(page)
-            assert count == len(data), f"数目不对,请检查,预期数目:{count}, 实际数目:{len(data)}"
+            assert count == len(
+                data
+            ), f"数目不对,请检查,预期数目:{count}, 实际数目:{len(data)}"
             return data
 
 
-async def operate_jable_playwright(url, headless=True):
+async def operate_jable_playwright(url, headless=False):
     async with async_playwright() as p:
-        for browser_type in [p.firefox]:  # p.chromium, 用chromium会被检测到, firefox不会
+        for browser_type in [
+            p.firefox
+        ]:  # p.chromium, 用chromium会被检测到, firefox不会
             browser = await browser_type.launch(
                 headless=headless,
                 # executablePath="C:\\Users\\hxse\\AppData\\Local\\ms-playwright\\firefox-1335\\firefox\\firefox.exe",
@@ -77,6 +83,9 @@ async def operate_jable_playwright(url, headless=True):
             page = await browser.new_page()
             await page.goto(url, timeout=timeout)
             el = await page.query_selector("div.info-header")
+            import pdb
+
+            pdb.set_trace()
             titleEl = await el.query_selector(".header-left h4")
             countEl = await page.query_selector(".count")
             viewEl = await el.query_selector_all("span.mr-3")
@@ -124,6 +133,12 @@ async def operate_jable_playwright(url, headless=True):
 
 
 if __name__ == "__main__":
+    """
+    "pycryptodome",
+    "cloudscraper==1.2.58",
+    "playwright-stealth==1.0.5",
+    "playwright==1.32.1",
+    """
     url = "https://jable.tv/videos/ipx-252-c/"
     obj = asyncio.run(operate_jable_playwright(url, headless=True))
     print(obj)

@@ -1,4 +1,3 @@
-import cloudscraper
 from config import headers, proxies
 import re
 import os

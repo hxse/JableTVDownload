@@ -7,15 +7,14 @@ authors = [
 ]
 dependencies = [
     "requests==2.25.1",
-    "beautifulsoup4==4.9.3",
     "m3u8==0.8.0",
-    "pycryptodome",
-    "cloudscraper==1.2.58",
     "python-ffmpeg>=1.0.14",
     "fire>=0.4.0",
     "grequests>=0.6.0",
-    "playwright-stealth==1.0.5",
-    "playwright==1.32.1",
+    "botasaurus>=4.0.59",
+    "beautifulsoup4>=4.12.3",
+    "chrome-extension-python>=1.0.1",
+    "pycryptodome>=3.20.0",
 ]
 requires-python = ">=3.10"
 license = {text = "MIT"}

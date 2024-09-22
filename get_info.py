@@ -7,7 +7,9 @@ import re
 from pathlib import Path
 import fire
 import json
-from get_playwright import operate_jable_playwright, jable_favourite_playwright
+
+# from get_playwright import operate_jable_playwright, jable_favourite_playwright
+from get_botasaurus import operate_jable_playwright, jable_favourite_playwright
 from config import sort_list
 
 
@@ -67,9 +69,11 @@ def operate_jable(r):
     raise Exception(f"请求失败 {r.status_code} {r.url}")
 
 
-async def get_jable_one(url, get_mode="playwright"):
+async def get_jable_one(url, get_mode="botasaurus"):
     if get_mode == "playwright":
         return await operate_jable_playwright(url, headless=True)
+    elif get_mode == "botasaurus":
+        return operate_jable_playwright(url)
     else:
         tasks = (grequests.get(u, proxies=proxies, headers=headers) for u in [url])
         for r in grequests.imap(tasks, size=6):
@@ -99,7 +103,7 @@ async def loop_download_info(
     playlist=True,
     message=False,
     playlsit_message=False,
-    get_mode="playwright",
+    get_mode="botasaurus",
 ):
     allUrls = []
     urls = []
@@ -131,6 +135,10 @@ async def loop_download_info(
     if get_mode == "playwright":
         for i in urls:
             data = await operate_jable_playwright(i)
+            write_json(data)
+    elif get_mode == "botasaurus":
+        for i in urls:
+            data = operate_jable_playwright(i)
             write_json(data)
     else:
         tasks = (grequests.get(u, proxies=proxies, headers=headers) for u in urls)
@@ -385,6 +393,7 @@ async def create_playlist(
     mode="jable",
     message=True,
     update=True,
+    enable_favourite=False,
 ):
     if update:
         create_playlist_tag(
@@ -397,12 +406,15 @@ async def create_playlist(
 
     empty_file_arr = check_m3u8_file(dirPath, playlistPath, clean_empty_file=True)
 
-    await create_playlist_favourite(
-        dirPath=dirPath,
-        playlistPath=playlistPath,
-        mode=mode,
-        message=message,
-    )
+    if not enable_favourite:
+        print("skip favourite")
+    else:
+        await create_playlist_favourite(
+            dirPath=dirPath,
+            playlistPath=playlistPath,
+            mode=mode,
+            message=message,
+        )
 
     empty_file_arr = [
         *empty_file_arr,
