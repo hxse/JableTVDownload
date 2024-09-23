@@ -5,6 +5,7 @@ from bs4 import BeautifulSoup
 from config import headers, proxies
 import re
 from pathlib import Path
+import shutil
 import fire
 import json
 
@@ -104,6 +105,7 @@ async def loop_download_info(
     message=False,
     playlsit_message=False,
     get_mode="botasaurus",
+    enable_clear=True,
 ):
     allUrls = []
     urls = []
@@ -150,7 +152,7 @@ async def loop_download_info(
     #     print("update info_file...")
     if playlist == True:
         await create_playlist(
-            message=playlsit_message, update=(len(urls) > -1)
+            message=playlsit_message, update=(len(urls) > -1), enable_clear=enable_clear
         )  # len(urls)>0是有tag下载才重新生成播放列表, >-1就是直接生成
 
         # if not playlsit_message:
@@ -394,6 +396,7 @@ async def create_playlist(
     message=True,
     update=True,
     enable_favourite=False,
+    enable_clear=False,
 ):
     if update:
         create_playlist_tag(
@@ -422,7 +425,13 @@ async def create_playlist(
     ]
 
     for i in empty_file_arr:
-        print(f"没有检测到文件, https://jable.tv/videos/{i}/")
+        file_dir = Path(dirPath) / i
+
+        print(f"没有检测到文件: {file_dir}")
+        print(f"https://jable.tv/videos/{i}/")
+
+        if enable_clear:
+            shutil.rmtree(file_dir)
 
 
 if __name__ == "__main__":
