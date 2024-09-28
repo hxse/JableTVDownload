@@ -1,6 +1,6 @@
 [project]
-name = ""
-version = ""
+name = "jableTVDownload"
+version = "1.0"
 description = ""
 authors = [
     {name = "hxse", email = "narutohy@163.com"},
